@@ -19,6 +19,9 @@ if __name__ == '__main__':
     setting = QtCore.QSettings("qsdoiuhvap", "xpoihybao");
     win.restoreGeometry(setting.value("geometry"));
     win.show()
+    def hello():
+        print "hello"
+    win.launchButton.clicked.connect(hello)
 
     app.exec_()
 
