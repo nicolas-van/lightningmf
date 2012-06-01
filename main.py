@@ -111,7 +111,6 @@ class FrontendApplication:
         self.win.show()
 
         self.win.itemsView.setModel(MyModel())
-        self.win.itemsView.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
         self.win.itemsView.horizontalHeader().setResizeMode(0, QtGui.QHeaderView.Stretch)
 
         self.win.actionRoms.triggered.connect(self.loadRoms)
@@ -149,16 +148,18 @@ class MyModel(QtCore.QAbstractTableModel):
         4: ("Status", "status"),
         5: ("Clone of", "cloneof"),
     }
+    items_per_page = 50
+    max_pages = 5
     def __init__(self):
         self.cache = {}
+        self.count = None
         super(MyModel, self).__init__()
     @transactionnal
     def rowCount(self, *args):
-        return 30
-        if not "count" in self.cache:
+        if self.count is None:
             print "query count"
-            self.cache["count"] = session.query(Game).order_by(Game.description).count()
-        return self.cache["count"]
+            self.count = session.query(Game).order_by(Game.description).count()
+        return self.count
     def columnCount(self, *args):
         return len(MyModel.headers)
     @transactionnal
@@ -166,12 +167,16 @@ class MyModel(QtCore.QAbstractTableModel):
         if role != QtCore.Qt.DisplayRole:
             return
         row = index.row()
-        if not row in self.cache:
-            print "query", row
-            result = session.execute(session.query(Game).order_by(Game.description).offset(row).limit(1))
-            dict_ = [dict(x) for x in result][0]
-            self.cache[row] = dict_
-        game = self.cache[row]
+        page = row / MyModel.items_per_page
+        if not page in self.cache:
+            if len(self.cache) >= MyModel.max_pages:
+                del self.cache[self.cache.keys()[0]]
+            print "query page", page
+            result = session.execute(session.query(Game).order_by(Game.description) \
+                    .offset(page * MyModel.items_per_page).limit(MyModel.items_per_page))
+            dicts = [dict(x) for x in result]
+            self.cache[page] = dicts
+        game = self.cache[page][row % MyModel.items_per_page]
         col = MyModel.headers[index.column()][1]
         return game.get("game_" + col, "")
     def headerData(self, section, orientation, role):
