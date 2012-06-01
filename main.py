@@ -122,10 +122,8 @@ class FrontendApplication:
     
     def loadRoms(*args):
         filename = tempfile.mktemp()
-        # for debug
-        filename = "tmplist.xml"
-        #with open(filename, "w") as tmpfile:
-        #    subprocess.check_call(["mame", "-listxml"], stdout=tmpfile)
+        with open(filename, "w") as tmpfile:
+            subprocess.check_call(["mame", "-listxml"], stdout=tmpfile)
         @transactionnal
         def parse_elements():
             import xml.etree.ElementTree as etree
