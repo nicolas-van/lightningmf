@@ -24,12 +24,30 @@ if __name__ == '__main__':
     win.launchButton.clicked.connect(hello)
 
     class MyModel(QtCore.QAbstractTableModel):
-        def rowCount(*args):
+        def rowCount(self, *args):
             return 3
-        def columnCount(*args):
+        def columnCount(self, *args):
             return 3
-        def data(*args):
-            return "yop"
+        def data(self, index, role):
+            if role != QtCore.Qt.DisplayRole:
+                return
+            if index.column() <= 2 and index.row() <= 2:
+                return "yop"
+
+        def headerData(self, section, orientation, role):
+            if role != QtCore.Qt.DisplayRole:
+                return
+            if orientation == QtCore.Qt.Horizontal:
+                if section == 0:
+                    return "Name"
+                elif section == 1:
+                    return "Something"
+                elif section == 2:
+                    return "Else"
+                else:
+                    return
+
+
 
     win.itemsView.setModel(MyModel())
 
