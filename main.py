@@ -50,6 +50,7 @@ if __name__ == '__main__':
 
 
     win.itemsView.setModel(MyModel())
+    win.itemsView.horizontalHeader().setResizeMode(0, QtGui.QHeaderView.Stretch)
 
     app.exec_()
 
