@@ -23,6 +23,16 @@ if __name__ == '__main__':
         print "hello"
     win.launchButton.clicked.connect(hello)
 
+    class MyModel(QtCore.QAbstractTableModel):
+        def rowCount(*args):
+            return 3
+        def columnCount(*args):
+            return 3
+        def data(*args):
+            return "yop"
+
+    win.itemsView.setModel(MyModel())
+
     app.exec_()
 
     setting.setValue("geometry", win.saveGeometry())
