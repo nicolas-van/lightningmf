@@ -19,17 +19,19 @@ class FrontendApplication:
         self.settings = QtCore.QSettings("qsdoiuhvap", "xpoihybao");
         self.win.restoreGeometry(self.settings.value("geometry"));
         self.win.show()
-        def hello():
-            print "hello"
-        self.win.launchButton.clicked.connect(hello)
 
         self.win.itemsView.setModel(MyModel())
         self.win.itemsView.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
         self.win.itemsView.horizontalHeader().setResizeMode(0, QtGui.QHeaderView.Stretch)
 
+        self.win.actionRoms.triggered.connect(self.loadRoms)
+
         self.app.exec_()
         
         self.settings.setValue("geometry", self.win.saveGeometry())
+    
+    def loadRoms(*args):
+        print "hllo"
 
 class MyModel(QtCore.QAbstractTableModel):
     def rowCount(self, *args):

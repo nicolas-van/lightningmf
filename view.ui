@@ -89,8 +89,52 @@
      <height>25</height>
     </rect>
    </property>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>0</width>
+     <height>0</height>
+    </size>
+   </property>
+   <property name="autoFillBackground">
+    <bool>false</bool>
+   </property>
+   <property name="defaultUp">
+    <bool>false</bool>
+   </property>
+   <widget class="QMenu" name="menuConfiguration">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="title">
+     <string>Configuration</string>
+    </property>
+    <addaction name="actionMame"/>
+    <addaction name="actionRoms"/>
+   </widget>
+   <addaction name="menuConfiguration"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionMame">
+   <property name="text">
+    <string>MAME Configuration</string>
+   </property>
+  </action>
+  <action name="actionRoms">
+   <property name="text">
+    <string>Load rom data</string>
+   </property>
+  </action>
+  <action name="actionQsdf_sqs">
+   <property name="text">
+    <string>qsdf&amp;sqs</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
