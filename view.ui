@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>LIghtning MAME Frontend</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -128,11 +128,6 @@
   <action name="actionRoms">
    <property name="text">
     <string>Load rom data</string>
-   </property>
-  </action>
-  <action name="actionQsdf_sqs">
-   <property name="text">
-    <string>qsdf&amp;sqs</string>
    </property>
   </action>
  </widget>
