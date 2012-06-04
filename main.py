@@ -152,6 +152,7 @@ class FrontendApplication:
         except Exception as e:
             QtGui.QMessageBox.critical(self.win, "Error", "An error occured while listing the roms")
             return
+
         @transactionnal
         def parse_elements():
             import xml.etree.ElementTree as etree
