@@ -47,8 +47,8 @@ def Many2One(class_name, **kwargs):
 # models
 
 class Game(Base):
-    name = Column(String(50), nullable=False)
-    description = Column(String(200), nullable=False)
+    name = Column(String(50), nullable=False, index=True)
+    description = Column(String(200), nullable=False, index=True)
     year = Column(String(10), nullable=False)
     manufacturer = Column(String(70), nullable=False)
     status = Column(String(50), nullable=False)
@@ -144,17 +144,21 @@ class FrontendApplication:
         
         self.settings.setValue("geometry", self.win.saveGeometry())
     
-    def loadRoms(*args):
+    def loadRoms(self, *args):
+        self.win.statusBar().showMessage("Updating roms...")
+        
         filename = tempfile.mktemp()
         try:
             with open(filename, "w") as tmpfile:
                 subprocess.check_call([self.configuration["mameExecutable"], "-listxml"], stdout=tmpfile)
         except Exception as e:
             QtGui.QMessageBox.critical(self.win, "Error", "An error occured while listing the roms")
+            self.win.statusBar().showMessage("Rom update failed", 2000)
             return
 
         @transactionnal
         def parse_elements():
+            session.query(Game).delete()
             import xml.etree.ElementTree as etree
             with open(filename) as tmpfile:
                 doc = etree.iterparse(tmpfile)
@@ -168,6 +172,9 @@ class FrontendApplication:
                         session.add(game)
 
         parse_elements()
+
+        self.model.modelReset.emit()
+        self.win.statusBar().showMessage("Rom update succeeded", 2000)
 
     def searchChanged(self, text):
         self.model.searchString = text
