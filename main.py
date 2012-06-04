@@ -14,11 +14,19 @@ import sqlalchemy.ext.declarative
 from sqlalchemy import Column, Integer, String, Sequence, Boolean
 from sqlalchemy.orm import relationship
 import threading
+import json
+import shlex
+import StringIO
 
-db_directory = os.path.expanduser("~/.lightningmf")
-if not os.path.exists(db_directory):
-    os.makedirs(db_directory)
-cstring = "sqlite:///" + os.path.join(db_directory, "db.sqlite")
+SCRIPT_ROOT = os.path.dirname(os.path.realpath(__file__))
+
+data_directory = os.path.expanduser("~/.lightningmf")
+if not os.path.exists(data_directory):
+    os.makedirs(data_directory)
+
+confFile = os.path.join(data_directory, "conf.json")
+
+cstring = "sqlite:///" + os.path.join(data_directory, "db.sqlite")
 engine = sqlalchemy.create_engine(cstring, echo=False)
 
 # Some helpers to help use SqlAlchemy
@@ -99,13 +107,22 @@ def drop_db():
 # gui
 class FrontendApplication:
     def launch(self):
+        self.configuration = {
+            "mameExecutable": "",
+            "commandLineArguments": "",
+        }
+
+        self.loadConfigFile()
+
         self.app = QtGui.QApplication(sys.argv)  
 
-        self.loader = QtUiTools.QUiLoader()
-        file = QtCore.QFile("view.ui")
-        file.open(QtCore.QFile.ReadOnly)
-        self.win = self.loader.load(file)
-        file.close()
+        loader = QtUiTools.QUiLoader()
+        file = QtCore.QFile(os.path.join(SCRIPT_ROOT, "view.ui"))
+        try:
+            file.open(QtCore.QFile.ReadOnly)
+            self.win = loader.load(file)
+        finally:
+            file.close()
 
         self.win.move(QtGui.QDesktopWidget().availableGeometry().center() - self.win.geometry().center());
         self.settings = QtCore.QSettings("qsdoiuhvap", "xpoihybao");
@@ -117,6 +134,7 @@ class FrontendApplication:
         self.win.itemsView.horizontalHeader().setResizeMode(0, QtGui.QHeaderView.Stretch)
 
         self.win.actionRoms.triggered.connect(self.loadRoms)
+        self.win.actionMame.triggered.connect(self.configure)
 
         self.win.searchInput.textEdited.connect(self.searchChanged)
 
@@ -128,8 +146,12 @@ class FrontendApplication:
     
     def loadRoms(*args):
         filename = tempfile.mktemp()
-        with open(filename, "w") as tmpfile:
-            subprocess.check_call(["mame", "-listxml"], stdout=tmpfile)
+        try:
+            with open(filename, "w") as tmpfile:
+                subprocess.check_call([self.configuration["mameExecutable"], "-listxml"], stdout=tmpfile)
+        except Exception as e:
+            QtGui.QMessageBox.critical(self.win, "Error", "An error occured while listing the roms")
+            return
         @transactionnal
         def parse_elements():
             import xml.etree.ElementTree as etree
@@ -156,7 +178,49 @@ class FrontendApplication:
             return
         selected = selected[0].row()
         game = self.model.getRow(selected)
-        subprocess.check_call(["mame", game["game_name"]])
+        errors = StringIO.StringIO()
+        try:
+            subprocess.check_call([self.configuration["mameExecutable"], game["game_name"]] \
+                + shlex.split(self.configuration["commandLineArguments"]))
+        except Exception as e:
+            QtGui.QMessageBox.critical(self.win, "Error", "An error occured while launching this game")
+
+    def configure(self):
+        loader = QtUiTools.QUiLoader()
+        file = QtCore.QFile(os.path.join(SCRIPT_ROOT, "config.ui"))
+        try:
+            file.open(QtCore.QFile.ReadOnly)
+            self.confDial = loader.load(file)
+        finally:
+            file.close()
+
+        self.confDial.mameExecInput.setText(self.configuration["mameExecutable"])
+        self.confDial.cmdInput.setText(self.configuration["commandLineArguments"])
+
+        def browse():
+            name = QtGui.QFileDialog.getOpenFileName(self.confDial, "Choose MAME executable")
+            self.confDial.mameExecInput.setText(name[0])
+
+        self.confDial.browseButton.clicked.connect(browse)
+
+        def save():
+            params = {
+                "mameExecutable": self.confDial.mameExecInput.text(),
+                "commandLineArguments": self.confDial.cmdInput.text(),
+            }
+            dump = json.dumps(params)
+            with open(confFile, "w") as file:
+                file.write(dump)
+            self.loadConfigFile()
+
+        self.confDial.buttonBox.accepted.connect(save)
+
+        self.confDial.show()
+
+    def loadConfigFile(self):
+        with open(confFile) as file:
+            tmp = file.read()
+        self.configuration = json.loads(tmp)
 
 class MyModel(QtCore.QAbstractTableModel):
     headers = {
