@@ -132,6 +132,8 @@ class FrontendApplication:
         self.model = MyModel()
         self.win.itemsView.setModel(self.model)
         self.win.itemsView.horizontalHeader().setResizeMode(0, QtGui.QHeaderView.Stretch)
+        self.win.itemsView.doubleClicked.connect(self.launchGame)
+        self.win.itemsView.selectionModel().selectionChanged.connect(self.selectionChanged)
 
         self.win.actionRoms.triggered.connect(self.loadRoms)
         self.win.actionMame.triggered.connect(self.configure)
@@ -147,8 +149,6 @@ class FrontendApplication:
     def loadRoms(self):
         self.win.statusBar().showMessage("Updating roms, please wait...", 2000)
         QtCore.QTimer.singleShot(0, self.trueLoadRoms)
-
-    def trueLoadRoms(self):
         filename = tempfile.mktemp()
         try:
             with open(filename, "w") as tmpfile:
@@ -182,18 +182,33 @@ class FrontendApplication:
         self.model.searchString = text
         self.model.modelReset.emit()
 
-    def launchGame(self):
+    def _getSelected(self):
         selected = self.win.itemsView.selectedIndexes()
         if len(selected) == 0:
             return
         selected = selected[0].row()
-        game = self.model.getRow(selected)
-        errors = StringIO.StringIO()
+        return self.model.getRow(selected)
+
+    def launchGame(self):
+        game = self._getSelected()
         try:
             subprocess.check_call([self.configuration["mameExecutable"], game["game_name"]] \
                 + shlex.split(self.configuration["commandLineArguments"]))
         except Exception as e:
             QtGui.QMessageBox.critical(self.win, "Error", "An error occured while launching this game")
+
+    def selectionChanged(self, *args):
+        game = self._getSelected()
+        path = os.path.join("/home/niv/.mame/snaps", game["game_name"] + ".png")
+        if not os.path.exists(path):
+            pix = None
+        else:
+            img = QtGui.QImage()
+            img.load(path)
+            size = QtCore.QSize(self.win.imageLabel.width(), self.win.imageLabel.height())
+            img = img.scaled(size, QtCore.Qt.KeepAspectRatio)
+            pix = QtGui.QPixmap.fromImage(img)
+        self.win.imageLabel.setPixmap(pix)
 
     def configure(self):
         loader = QtUiTools.QUiLoader()
