@@ -149,6 +149,8 @@ class FrontendApplication:
     def loadRoms(self):
         self.win.statusBar().showMessage("Updating roms, please wait...", 2000)
         QtCore.QTimer.singleShot(0, self.trueLoadRoms)
+
+    def trueLoadRoms(self):
         filename = tempfile.mktemp()
         try:
             with open(filename, "w") as tmpfile:
@@ -170,7 +172,13 @@ class FrontendApplication:
                         desc = elem.findtext("description") or ""
                         year = elem.findtext("year") or ""
                         manu = elem.findtext("manufacturer") or ""
-                        game = Game(name=name, description=desc, year=year, manufacturer=manu, status="")
+                        clone = elem.get("cloneof") or None
+                        status = ""
+                        driver = elem.find("driver")
+                        if driver is not None:
+                            status = driver.get("status") or ""
+                        game = Game(name=name, description=desc, year=year, manufacturer=manu, status=status,
+                                cloneof=clone)
                         session.add(game)
 
         parse_elements()
@@ -199,9 +207,22 @@ class FrontendApplication:
 
     def selectionChanged(self, *args):
         game = self._getSelected()
+        self.setGameImage(game)
+
+    def setGameImage(self, game):
         path = os.path.join("/home/niv/.mame/snaps", game["game_name"] + ".png")
         if not os.path.exists(path):
             pix = None
+            clone = game["game_cloneof"]
+            if clone is not None:
+                @transactionnal
+                def getParent():
+                    result = session.execute(session.query(Game).filter(Game.name == clone))
+                    result = [dict(x) for x in result]
+                    return result[0] if len(result) >= 1 else None
+                parent = getParent()
+                if parent is not None:
+                    return self.setGameImage(parent)
         else:
             img = QtGui.QImage()
             img.load(path)
@@ -277,8 +298,6 @@ class MyModel(QtCore.QAbstractTableModel):
                 sqlalchemy.or_(Game.description.like("%" + self.searchString + "%"), \
                 Game.name.like("%" + self.searchString + "%")))
     def columnCount(self, *args):
-        # waiting to implement that part
-        return 4
         return len(MyModel.headers)
     @transactionnal
     def data(self, index, role):
