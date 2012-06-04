@@ -95,6 +95,8 @@ def init_db():
 
 def drop_db():
     Base.metadata.drop_all(engine)
+
+# gui
 class FrontendApplication:
     def launch(self):
         self.app = QtGui.QApplication(sys.argv)  
@@ -109,11 +111,14 @@ class FrontendApplication:
         self.settings = QtCore.QSettings("qsdoiuhvap", "xpoihybao");
         self.win.restoreGeometry(self.settings.value("geometry"));
         self.win.show()
-
-        self.win.itemsView.setModel(MyModel())
+        
+        self.model = MyModel()
+        self.win.itemsView.setModel(self.model)
         self.win.itemsView.horizontalHeader().setResizeMode(0, QtGui.QHeaderView.Stretch)
 
         self.win.actionRoms.triggered.connect(self.loadRoms)
+
+        self.win.searchInput.textEdited.connect(self.searchChanged)
 
         self.app.exec_()
         
@@ -139,6 +144,11 @@ class FrontendApplication:
 
         parse_elements()
 
+    def searchChanged(self, text):
+        print "searching", text
+        self.model.searchString = text
+        self.model.modelReset.emit()
+
 class MyModel(QtCore.QAbstractTableModel):
     headers = {
         0: ("Title", "description"),
@@ -151,15 +161,24 @@ class MyModel(QtCore.QAbstractTableModel):
     items_per_page = 50
     max_pages = 5
     def __init__(self):
+        super(MyModel, self).__init__()
         self.cache = {}
         self.count = None
-        super(MyModel, self).__init__()
+        self.searchString = ""
+        def reset():
+            self.cache = {}
+            self.count = None
+        self.modelReset.connect(reset)
     @transactionnal
     def rowCount(self, *args):
         if self.count is None:
             print "query count"
-            self.count = session.query(Game).order_by(Game.description).count()
+            self.count = self._buildQuery().count()
         return self.count
+    def _buildQuery(self):
+        return session.query(Game).order_by(Game.description).filter( \
+                sqlalchemy.or_(Game.description.like("%" + self.searchString + "%"), \
+                Game.name.like("%" + self.searchString + "%")))
     def columnCount(self, *args):
         return len(MyModel.headers)
     @transactionnal
@@ -172,7 +191,7 @@ class MyModel(QtCore.QAbstractTableModel):
             if len(self.cache) >= MyModel.max_pages:
                 del self.cache[self.cache.keys()[0]]
             print "query page", page
-            result = session.execute(session.query(Game).order_by(Game.description) \
+            result = session.execute(self._buildQuery() \
                     .offset(page * MyModel.items_per_page).limit(MyModel.items_per_page))
             dicts = [dict(x) for x in result]
             self.cache[page] = dicts
