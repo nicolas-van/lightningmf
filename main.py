@@ -120,6 +120,8 @@ class FrontendApplication:
 
         self.win.searchInput.textEdited.connect(self.searchChanged)
 
+        self.win.launchButton.clicked.connect(self.launchGame)
+
         self.app.exec_()
         
         self.settings.setValue("geometry", self.win.saveGeometry())
@@ -145,9 +147,16 @@ class FrontendApplication:
         parse_elements()
 
     def searchChanged(self, text):
-        print "searching", text
         self.model.searchString = text
         self.model.modelReset.emit()
+
+    def launchGame(self):
+        selected = self.win.itemsView.selectedIndexes()
+        if len(selected) == 0:
+            return
+        selected = selected[0].row()
+        game = self.model.getRow(selected)
+        subprocess.check_call(["mame", game["game_name"]])
 
 class MyModel(QtCore.QAbstractTableModel):
     headers = {
@@ -172,7 +181,6 @@ class MyModel(QtCore.QAbstractTableModel):
     @transactionnal
     def rowCount(self, *args):
         if self.count is None:
-            print "query count"
             self.count = self._buildQuery().count()
         return self.count
     def _buildQuery(self):
@@ -185,19 +193,19 @@ class MyModel(QtCore.QAbstractTableModel):
     def data(self, index, role):
         if role != QtCore.Qt.DisplayRole:
             return
-        row = index.row()
+        game = self.getRow(index.row())
+        col = MyModel.headers[index.column()][1]
+        return game.get("game_" + col, "")
+    def getRow(self, row):
         page = row / MyModel.items_per_page
         if not page in self.cache:
             if len(self.cache) >= MyModel.max_pages:
                 del self.cache[self.cache.keys()[0]]
-            print "query page", page
             result = session.execute(self._buildQuery() \
                     .offset(page * MyModel.items_per_page).limit(MyModel.items_per_page))
             dicts = [dict(x) for x in result]
             self.cache[page] = dicts
-        game = self.cache[page][row % MyModel.items_per_page]
-        col = MyModel.headers[index.column()][1]
-        return game.get("game_" + col, "")
+        return self.cache[page][row % MyModel.items_per_page]
     def headerData(self, section, orientation, role):
         if role != QtCore.Qt.DisplayRole:
             return
@@ -206,7 +214,7 @@ class MyModel(QtCore.QAbstractTableModel):
 
 if __name__ == '__main__':  
     if len(sys.argv) >= 2 and sys.argv[1] == "-flush":
-        print "flushing"
+        print "flush db"
         drop_db()
     init_db()
     FrontendApplication().launch()
