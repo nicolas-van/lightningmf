@@ -144,9 +144,11 @@ class FrontendApplication:
         
         self.settings.setValue("geometry", self.win.saveGeometry())
     
-    def loadRoms(self, *args):
-        self.win.statusBar().showMessage("Updating roms...")
-        
+    def loadRoms(self):
+        self.win.statusBar().showMessage("Updating roms, please wait...", 2000)
+        QtCore.QTimer.singleShot(0, self.trueLoadRoms)
+
+    def trueLoadRoms(self):
         filename = tempfile.mktemp()
         try:
             with open(filename, "w") as tmpfile:
@@ -260,6 +262,8 @@ class MyModel(QtCore.QAbstractTableModel):
                 sqlalchemy.or_(Game.description.like("%" + self.searchString + "%"), \
                 Game.name.like("%" + self.searchString + "%")))
     def columnCount(self, *args):
+        # waiting to implement that part
+        return 4
         return len(MyModel.headers)
     @transactionnal
     def data(self, index, role):
