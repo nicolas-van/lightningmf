@@ -143,6 +143,16 @@ class FrontendApplication:
 
         self.win.launchButton.clicked.connect(self.launchGame)
 
+        def starting():
+            if self.configuration["mameExecutable"] == "":
+                ret = QtGui.QMessageBox.question(self.win, "Configuration Missing", "Lightning MAME Frontend is not configured, do you " \
+                        + "want to configure it now?",
+                        buttons=QtGui.QMessageBox.Yes | QtGui.QMessageBox.No, defaultButton=QtGui.QMessageBox.Yes)
+                if ret == QtGui.QMessageBox.Yes:
+                    self.configure()
+
+        QtCore.QTimer.singleShot(0, starting)
+
         self.app.exec_()
         
         self.settings.setValue("geometry", self.win.saveGeometry())
@@ -247,11 +257,13 @@ class FrontendApplication:
 
         def browse():
             name = QtGui.QFileDialog.getOpenFileName(self.confDial, "Choose MAME Executable")
-            self.confDial.mameExecInput.setText(name[0])
+            if len(name[0]) > 0:
+                self.confDial.mameExecInput.setText(name[0])
         self.confDial.browseButton.clicked.connect(browse)
         def snapsBrowse():
             name = QtGui.QFileDialog.getExistingDirectory(self.confDial, "Choose Snapshots Folder")
-            self.confDial.snapsInput.setText(name[0])
+            if len(name) > 0:
+                self.confDial.snapsInput.setText(name)
         self.confDial.snapsButton.clicked.connect(snapsBrowse)
 
         def save():
@@ -264,6 +276,11 @@ class FrontendApplication:
             with open(confFile, "w") as file:
                 file.write(dump)
             self.loadConfigFile()
+            if self.model.rowCount() == 0:
+                ret = QtGui.QMessageBox.question(self.confDial, "Roms Loading", "Do you want to load the roms now?",
+                    buttons=QtGui.QMessageBox.Yes | QtGui.QMessageBox.No, defaultButton=QtGui.QMessageBox.Yes)
+                if ret == QtGui.QMessageBox.Yes:
+                    QtCore.QTimer.singleShot(0, self.loadRoms)
 
         self.confDial.buttonBox.accepted.connect(save)
 
