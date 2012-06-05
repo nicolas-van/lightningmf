@@ -110,6 +110,7 @@ class FrontendApplication:
         self.configuration = {
             "mameExecutable": "",
             "commandLineArguments": "",
+            "snapsFolder": "",
         }
 
         self.loadConfigFile()
@@ -210,7 +211,7 @@ class FrontendApplication:
         self.setGameImage(game)
 
     def setGameImage(self, game):
-        path = os.path.join("/home/niv/.mame/snaps", game["game_name"] + ".png")
+        path = os.path.join(self.configuration["snapsFolder"], game["game_name"] + ".png")
         if not os.path.exists(path):
             pix = None
             clone = game["game_cloneof"]
@@ -242,17 +243,22 @@ class FrontendApplication:
 
         self.confDial.mameExecInput.setText(self.configuration["mameExecutable"])
         self.confDial.cmdInput.setText(self.configuration["commandLineArguments"])
+        self.confDial.snapsInput.setText(self.configuration["snapsFolder"])
 
         def browse():
-            name = QtGui.QFileDialog.getOpenFileName(self.confDial, "Choose MAME executable")
+            name = QtGui.QFileDialog.getOpenFileName(self.confDial, "Choose MAME Executable")
             self.confDial.mameExecInput.setText(name[0])
-
         self.confDial.browseButton.clicked.connect(browse)
+        def snapsBrowse():
+            name = QtGui.QFileDialog.getExistingDirectory(self.confDial, "Choose Snapshots Folder")
+            self.confDial.snapsInput.setText(name[0])
+        self.confDial.snapsButton.clicked.connect(snapsBrowse)
 
         def save():
             params = {
                 "mameExecutable": self.confDial.mameExecInput.text(),
                 "commandLineArguments": self.confDial.cmdInput.text(),
+                "snapsFolder": self.confDial.snapsInput.text(),
             }
             dump = json.dumps(params)
             with open(confFile, "w") as file:
@@ -264,6 +270,8 @@ class FrontendApplication:
         self.confDial.show()
 
     def loadConfigFile(self):
+        if not os.path.exists(confFile):
+            return
         with open(confFile) as file:
             tmp = file.read()
         self.configuration = json.loads(tmp)
