@@ -1,2 +1,2 @@
 #! /bin/sh
-fakeroot mkdeb2.sh
+fakeroot ./mkdeb2.sh
