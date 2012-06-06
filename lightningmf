@@ -1,5 +1,5 @@
 #! /usr/bin/python
 
-from lightningmf_main import main
+from lightningmf_pk import main
 
 main()
