@@ -364,10 +364,13 @@ class MyModel(QtCore.QAbstractTableModel):
         if orientation == QtCore.Qt.Horizontal:
             return MyModel.headers[section][0]
 
-if __name__ == '__main__':  
+def main():
     if len(sys.argv) >= 2 and sys.argv[1] == "-flush":
         print "flush db"
         drop_db()
     init_db()
     FrontendApplication().launch()
+
+if __name__ == '__main__':  
+    main()
 

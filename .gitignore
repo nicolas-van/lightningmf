@@ -1,2 +1,5 @@
 install/deb/lightningmf.deb
 install/deb/lightningmf/usr
+*.pyc
+dist
+MANIFEST
