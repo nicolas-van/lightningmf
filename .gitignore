@@ -3,3 +3,4 @@ install/deb/lightningmf/usr
 *.pyc
 dist
 MANIFEST
+build/

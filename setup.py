@@ -5,14 +5,14 @@ import os.path
 
 setup(name='lightningmf',
       version='1.0.0',
-      description='Lightning MAME Frontend is a simple and effective MAME Frontend.',
+      description='Lightning MAME Frontend',
       author='Nicolas Vanhoren',
       author_email='nicolas.vanhoren@unknown.com',
       url='http://nicolas-van.github.com/lightningmf',
       packages=["lightningmf_pk"],
       scripts=["lightningmf"],
       package_data={'lightningmf_pk': ["*.ui"]},
-      long_description="",
+      long_description="Lightning MAME Frontend is a simple and effective MAME Frontend.",
       keywords="",
       license="GPLv3",
       classifiers=[
