@@ -1,6 +1,5 @@
 #! /bin/bash
 
-author="Nicolas Vanhoren <nicolas.vanhoren@fakemail.com>"
 package="lightningmf"
 
 rm $package-*.tar.gz
@@ -13,7 +12,8 @@ rm -r dist
 popd
 mv ../../dist/$package-*.tar.gz .
 
-py2dsc -m "$author" $package-*.tar.gz
+py2dsc $package-*.tar.gz
+cp control deb_dist/$package-*/debian/ || exit -1
 cp copyright deb_dist/$package-*/debian/
 pushd .
 cd deb_dist/$package-*/

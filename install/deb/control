@@ -1,0 +1,15 @@
+Source: lightningmf
+Maintainer: Nicolas Vanhoren <nicolas.vanhoren@fakemail.com>
+Section: python
+Priority: optional
+Build-Depends: debhelper (>= 7), python-support (>= 0.8.4)
+Standards-Version: 3.8.4
+XS-Python-Version: current
+
+Package: lightningmf
+Architecture: all
+Depends: ${misc:Depends}, ${python:Depends}, 
+XB-Python-Version: >= 2.7
+Provides: ${python:Provides}
+Description: Lightning MAME Frontend
+ Lightning MAME Frontend is a simple and effective MAME Frontend.
