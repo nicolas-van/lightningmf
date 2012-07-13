@@ -4,7 +4,7 @@
 Version=1.0
 Type=Application
 Terminal=false
-Icon[en_US]=gnome-panel-launcher
+Icon[en_US]=/usr/share/pyshared/lightningmf_pk/logo.svg
 Name[en_US]=Lightning MAME Frontend
 Exec=lightningmf
 Name=Lightning MAME Frontend
