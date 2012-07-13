@@ -135,6 +135,7 @@ class FrontendApplication:
         self.app = QtGui.QApplication(sys.argv)  
 
         loader = QtUiTools.QUiLoader()
+        loader.setWorkingDirectory(QtCore.QDir(SCRIPT_ROOT))
         file = QtCore.QFile(os.path.join(SCRIPT_ROOT, "view.ui"))
         try:
             file.open(QtCore.QFile.ReadOnly)

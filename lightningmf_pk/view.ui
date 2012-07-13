@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>LIghtning MAME Frontend</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>logo.svg</normaloff>logo.svg</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
