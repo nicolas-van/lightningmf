@@ -5,4 +5,4 @@ This program is a MAME frontend mainly designed for Ubuntu. It was created to be
 
 [You can download and install it right now.](https://github.com/nicolas-van/lightningmf/downloads)
 
-LightningMF could work on any systems, but currently I only provide installer for Ubuntu. If you would like to create other installers yourself contact me on github.
+Lightning MAME Frontend could work on any systems, but currently I only provide installer for Ubuntu. If you would like to create other installers yourself contact me on github.
