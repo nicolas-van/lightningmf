@@ -1,7 +1,7 @@
 Lightning MAME Frontend
 =======================
 
-This program is a MAME frontend mainly designed for Ubuntu. It was created to be easy to use, be very fast and focus on the essential features.
+This program is a MAME frontend designed for Linux and especially Ubuntu. It was created to be easy to use, be very fast and focus on the essential features.
 
 [You can download and install it right now.](https://github.com/nicolas-van/lightningmf/downloads)
 
