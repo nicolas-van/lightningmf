@@ -128,6 +128,7 @@ class FrontendApplication:
             "mameExecutable": "",
             "commandLineArguments": "",
             "snapsFolder": "",
+            "romsFolder": "",
         }
 
         self.loadConfigFile()
@@ -167,6 +168,13 @@ class FrontendApplication:
                         + "want to configure it now?",
                         buttons=QtGui.QMessageBox.Yes | QtGui.QMessageBox.No, defaultButton=QtGui.QMessageBox.Yes)
                 if ret == QtGui.QMessageBox.Yes:
+                    try:
+                        subprocess.check_call(['mame', "-help"])
+                        self.configuration["mameExecutable"] = "mame"
+                        self.configuration["romsFolder"] = os.path.expanduser("~/.mame/roms")
+                        self.configuration["snapsFolder"] = os.path.expanduser("~/.mame/snaps")
+                    except:
+                        pass # do nothing
                     self.configure()
 
         QtCore.QTimer.singleShot(0, starting)
@@ -198,6 +206,8 @@ class FrontendApplication:
                 for event, elem in doc:
                     if elem.tag == "game":
                         name = elem.get("name")
+                        if not os.path.exists(os.path.join(self.configuration["romsFolder"], name + ".zip")):
+                            continue
                         desc = elem.findtext("description") or ""
                         year = elem.findtext("year") or ""
                         manu = elem.findtext("manufacturer") or ""
@@ -272,6 +282,7 @@ class FrontendApplication:
         self.confDial.mameExecInput.setText(self.configuration["mameExecutable"])
         self.confDial.cmdInput.setText(self.configuration["commandLineArguments"])
         self.confDial.snapsInput.setText(self.configuration["snapsFolder"])
+        self.confDial.romsInput.setText(self.configuration["romsFolder"])
 
         def browse():
             name = QtGui.QFileDialog.getOpenFileName(self.confDial, "Choose MAME Executable")
@@ -283,12 +294,18 @@ class FrontendApplication:
             if len(name) > 0:
                 self.confDial.snapsInput.setText(name)
         self.confDial.snapsButton.clicked.connect(snapsBrowse)
+        def romsBrowse():
+            name = QtGui.QFileDialog.getExistingDirectory(self.confDial, "Choose Roms Folder")
+            if len(name) > 0:
+                self.confDial.romsInput.setText(name)
+        self.confDial.romsButton.clicked.connect(romsBrowse)
 
         def save():
             params = {
                 "mameExecutable": self.confDial.mameExecInput.text(),
                 "commandLineArguments": self.confDial.cmdInput.text(),
                 "snapsFolder": self.confDial.snapsInput.text(),
+                "romsFolder": self.confDial.romsInput.text(),
             }
             dump = json.dumps(params)
             with open(confFile, "w") as file:
