@@ -208,11 +208,15 @@ class FrontendApplication:
             session.query(Game).delete()
             import xml.etree.ElementTree as etree
             with open(filename) as tmpfile:
-                doc = etree.iterparse(tmpfile)
+                doc = etree.iterparse(tmpfile, events=("start", "end"))
+                doc = iter(doc)
+                event, root = doc.next()
+                num = 0
                 for event, elem in doc:
-                    if elem.tag == "game":
+                    if event == "end" and elem.tag == "game":
                         name = elem.get("name")
                         if not os.path.exists(os.path.join(self.configuration["romsFolder"], name + ".zip")):
+                            root.clear()
                             continue
                         desc = elem.findtext("description") or ""
                         year = elem.findtext("year") or ""
@@ -225,7 +229,10 @@ class FrontendApplication:
                         game = Game(name=name, description=desc, year=year, manufacturer=manu, status=status,
                                 cloneof=clone)
                         session.add(game)
-                        elem.clear()
+                        if num >= 200:
+                            session.commit()
+                            num = 0
+                        root.clear()
 
         parse_elements()
 
