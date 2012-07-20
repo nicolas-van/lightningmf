@@ -34,7 +34,6 @@ import threading
 import json
 import shlex
 import StringIO
-import glob
 
 SCRIPT_ROOT = os.path.dirname(os.path.realpath(__file__))
 
@@ -189,26 +188,18 @@ class FrontendApplication:
         QtCore.QTimer.singleShot(0, self.trueLoadRoms)
 
     def trueLoadRoms(self):
-        self._loadRomsInternals()
-        self.model.modelReset.emit()
-        self.win.statusBar().showMessage("Rom update succeeded", 2000)
+        filename = tempfile.mktemp()
+        try:
+            with open(filename, "w") as tmpfile:
+                subprocess.check_call([self.configuration["mameExecutable"], "-listxml"], stdout=tmpfile)
+        except Exception as e:
+            QtGui.QMessageBox.critical(self.win, "Error", "An error occured while listing the roms")
+            self.win.statusBar().showMessage("Rom update failed", 2000)
+            return
 
-    @transactionnal
-    def _loadRomsInternals(self):
-        session.query(Game).delete()
-
-        files = glob.glob(os.path.join(self.configuration["romsFolder"], "*.zip"))
-        for file_ in files:
-            rom_name = os.path.basename(file_)[0:-4]
-            filename = tempfile.mktemp()
-            try:
-                with open(filename, "w") as tmpfile:
-                    subprocess.check_call([self.configuration["mameExecutable"], "-listxml", rom_name], stdout=tmpfile)
-            except Exception as e:
-                QtGui.QMessageBox.critical(self.win, "Error", "An error occured while listing the roms")
-                self.win.statusBar().showMessage("Rom update failed", 2000)
-                return
-
+        @transactionnal
+        def parse_elements():
+            session.query(Game).delete()
             import xml.etree.ElementTree as etree
             with open(filename) as tmpfile:
                 doc = etree.iterparse(tmpfile)
@@ -228,6 +219,11 @@ class FrontendApplication:
                         game = Game(name=name, description=desc, year=year, manufacturer=manu, status=status,
                                 cloneof=clone)
                         session.add(game)
+
+        parse_elements()
+
+        self.model.modelReset.emit()
+        self.win.statusBar().showMessage("Rom update succeeded", 2000)
 
     def searchChanged(self, text):
         self.model.searchString = text
