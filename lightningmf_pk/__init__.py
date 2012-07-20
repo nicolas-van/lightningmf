@@ -225,6 +225,7 @@ class FrontendApplication:
                         game = Game(name=name, description=desc, year=year, manufacturer=manu, status=status,
                                 cloneof=clone)
                         session.add(game)
+                        elem.clear()
 
         parse_elements()
 
