@@ -154,6 +154,12 @@ class FrontendApplication:
         self.win.itemsView.horizontalHeader().setResizeMode(0, QtGui.QHeaderView.Stretch)
         self.win.itemsView.doubleClicked.connect(self.launchGame)
         self.win.itemsView.selectionModel().selectionChanged.connect(self.selectionChanged)
+        def set_number():
+            num = self.model.rowCount()
+            self.win.romsNumberLabel.setText("%d roms" % num)
+        self.model.modelReset.connect(set_number)
+        set_number()
+
 
         self.win.actionRoms.triggered.connect(self.loadRoms)
         self.win.actionMame.triggered.connect(self.configure)
