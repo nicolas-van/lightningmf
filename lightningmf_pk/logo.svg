@@ -23,7 +23,17 @@
   <defs
      id="defs4">
     <linearGradient
-       inkscape:collect="always"
+       id="linearGradient3805">
+      <stop
+         style="stop-color:#1cd5f1;stop-opacity:1;"
+         offset="0"
+         id="stop3807" />
+      <stop
+         style="stop-color:#2b99cc;stop-opacity:1;"
+         offset="1"
+         id="stop3809" />
+    </linearGradient>
+    <linearGradient
        id="linearGradient5319">
       <stop
          style="stop-color:#1cd5f1;stop-opacity:1;"
@@ -96,14 +106,13 @@
     </linearGradient>
     <linearGradient
        inkscape:collect="always"
-       xlink:href="#linearGradient5319"
-       id="linearGradient5325"
-       x1="100"
-       y1="875.08551"
-       x2="254.55334"
-       y2="875.08551"
-       gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(0.41544444,0,0,0.41447648,-41.5634,657.79479)" />
+       xlink:href="#linearGradient3805"
+       id="linearGradient3811"
+       x1="-0.0189541"
+       y1="1020.4972"
+       x2="64.189374"
+       y2="1020.4972"
+       gradientUnits="userSpaceOnUse" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -112,17 +121,18 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.6710922"
-     inkscape:cx="219.91226"
-     inkscape:cy="27.160829"
+     inkscape:zoom="4.7265625"
+     inkscape:cx="-7.5953139"
+     inkscape:cy="20.551296"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="1343"
+     inkscape:window-width="1357"
      inkscape:window-height="870"
-     inkscape:window-x="287"
-     inkscape:window-y="129"
-     inkscape:window-maximized="0" />
+     inkscape:window-x="385"
+     inkscape:window-y="119"
+     inkscape:window-maximized="0"
+     inkscape:snap-bbox="false" />
   <metadata
      id="metadata7">
     <rdf:RDF>
@@ -131,7 +141,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -146,14 +156,9 @@
        height="64.058723"
        x="-0.0189541"
        y="988.46783"
-       style="fill:#288ebf;fill-opacity:1" />
-    <rect
-       id="rect2993"
-       width="64.208328"
-       height="64.058723"
-       x="-0.0189541"
-       y="988.46783"
-       style="fill:url(#linearGradient5325);fill-opacity:1" />
+       style="fill:url(#linearGradient3811);fill-opacity:1"
+       rx="7.6165571"
+       ry="7.6165571" />
     <text
        xml:space="preserve"
        style="font-size:54.42161942px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Jolly Lodger;-inkscape-font-specification:Jolly Lodger"
