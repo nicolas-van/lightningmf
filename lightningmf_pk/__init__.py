@@ -402,6 +402,8 @@ def main():
         drop_db()
     init_db()
     FrontendApplication().launch()
+    print "End of application"
+    engine.dispose()
 
 if __name__ == '__main__':  
     main()
