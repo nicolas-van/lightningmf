@@ -8,7 +8,19 @@ layout: general
 
 <p><a href="https://github.com/nicolas-van/lightningmf/downloads">You can download and install it right now.</a></p>
 
-<img src="lmf.jpg"/>
+{% for post in site.posts limit:10 %}
+    <div class="post">
+        <h3><a href="{{ post.url }}">{{ post.title }}</a></h3>
+      
+        <div class="body">
+            {{ post.content }}
+        </div>
+        
+        <div class="meta">
+            Posted on <a href="{{ post.url }}">{{ post.date | date_to_string }}</a>
+        </div>
+    </div>
+{% endfor %}
 
 <a href="tmp.html">Test</a>
 
