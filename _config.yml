@@ -2,4 +2,5 @@ permalink: news_:year_:month_:day_:title.html
 name: Lightning MAME Frontend
 description: A lightweight frontend for MAME
 url: http://lightningmf.neoname.eu
+download: /releases/lightningmf_1.0.2-1_all.deb
 
