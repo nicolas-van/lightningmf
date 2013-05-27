@@ -5,6 +5,9 @@ This program is a MAME frontend designed for Linux and especially Ubuntu. It was
 
 [You can download and install it right now.](http://lightningmf.neoname.eu)
 
+
+Lightning MAME Fronted also need people to work on it. If you are a Python programmer that likes open source, do not hesitate to participate on Github. Report bugs, implement features you like, make new packagings, every help is welcomed. If you are not sure, [you can contact me](https://github.com/nicolas-van).
+
 Lightning MAME Frontend could work on any systems, but currently I only provide installer for Ubuntu. If you would like to create other installers yourself contact me on github.
 
 ###Changelog:
