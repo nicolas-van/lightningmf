@@ -477,3 +477,24 @@ footer a:hover {
 
 /* Mobile Portrait Size to Mobile Landscape Size (devices and browsers) */
 @media only screen and (max-width: 479px) {}
+
+html {
+  position: relative;
+}
+
+#content-wrapper {
+  margin-bottom: 78px;
+}
+
+.websiteFooter {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  margin-left: -250px;
+  height: 78px;
+  width: 500px;
+  text-align: center;
+  padding: 10px;
+  box-sizing: border-box;
+  opacity: 0.6;
+}
