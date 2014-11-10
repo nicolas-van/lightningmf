@@ -19,7 +19,7 @@
 from PySide import QtGui  
 from PySide import QtCore
 from PySide import QtUiTools
-import sys  
+import sys
 import os
 import tempfile
 import subprocess
@@ -27,7 +27,7 @@ import sqlalchemy
 import os.path
 import os
 import sqlalchemy.orm
-import sqlalchemy.ext.declarative 
+import sqlalchemy.ext.declarative
 from sqlalchemy import Column, Integer, String, Sequence, Boolean
 from sqlalchemy.orm import relationship
 import threading
@@ -130,7 +130,6 @@ class FrontendApplication:
             "snapsFolder": "",
             "romsFolder": "",
         }
-
         self.loadConfigFile()
 
         self.app = QtGui.QApplication(sys.argv)  
@@ -153,7 +152,8 @@ class FrontendApplication:
         self.win.itemsView.setModel(self.model)
         self.win.itemsView.horizontalHeader().setResizeMode(0, QtGui.QHeaderView.Stretch)
         self.win.itemsView.doubleClicked.connect(self.launchGame)
-        self.win.itemsView.selectionModel().selectionChanged.connect(self.selectionChanged)
+        x = self.win.itemsView.selectionModel()
+        x.selectionChanged.connect(self.selectionChanged)
         def set_number():
             num = self.model.rowCount()
             self.win.romsNumberLabel.setText("%d roms" % num)
@@ -405,6 +405,6 @@ def main():
     print "End of application"
     engine.dispose()
 
-if __name__ == '__main__':  
+if __name__ == '__main__':
     main()
 

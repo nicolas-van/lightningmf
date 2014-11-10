@@ -1,6 +1,3 @@
-install/deb/lightningmf.deb
-install/deb/lightningmf/usr
 *.pyc
+*.egg-info
 dist
-MANIFEST
-build/
