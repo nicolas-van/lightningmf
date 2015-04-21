@@ -34,6 +34,7 @@ import threading
 import json
 import shlex
 import StringIO
+import contextlib
 
 SCRIPT_ROOT = os.path.dirname(os.path.realpath(__file__))
 
@@ -73,37 +74,19 @@ class Game(Base):
 
 # session
 
-class ThreadSession:
-    def __init__(self, session_class):
-        self._session_class = sqlalchemy.orm.scoped_session(session_class)
-    def __getattr__(self, name):
-        return getattr(self._session_class(), name)
-    def ensure_inited(self):
-        return self._session_class()
-    def remove(self):
-        try:
-            self._session_class.remove()
-        except:
-            pass
+Session = sqlalchemy.orm.sessionmaker(bind=engine)
 
-session = ThreadSession(sqlalchemy.orm.sessionmaker(bind=engine))
-
-_local_test = threading.local()
-
-def transactionnal(fct):
-    def wrapping(*args, **kwargs):
-        if getattr(_local_test, "test", 0) != 0:
-            raise Exception("Multiple usages of @transactionnal")
-        _local_test.test = 1
-        session.ensure_inited()
-        try:
-            val = fct(*args, **kwargs)
-            session.commit()
-            return val
-        finally:
-            _local_test.test = 0
-            session.remove()
-    return wrapping
+@contextlib.contextmanager
+def transaction():
+    session = Session()
+    try:
+        yield session
+        session.commit()
+    except:
+        session.rollback()
+        raise
+    finally:
+        session.close()
 
 # database initialisation
 
@@ -112,11 +95,7 @@ def init_db():
         return
     tname = Base.metadata.tables.keys()[0]
     if not engine.dialect.has_table(engine, tname):
-        Base.metadata.create_all(engine) 
-        @transactionnal
-        def create_data():
-            pass
-        create_data()
+        Base.metadata.create_all(engine)
 
 def drop_db():
     Base.metadata.drop_all(engine)
@@ -203,36 +182,36 @@ class FrontendApplication:
             self.win.statusBar().showMessage("Rom update failed", 2000)
             return
 
-        @transactionnal
         def parse_elements():
-            session.query(Game).delete()
-            import xml.etree.ElementTree as etree
-            with open(filename) as tmpfile:
-                doc = etree.iterparse(tmpfile, events=("start", "end"))
-                doc = iter(doc)
-                event, root = doc.next()
-                num = 0
-                for event, elem in doc:
-                    if event == "end" and elem.tag == "game":
-                        name = elem.get("name")
-                        if not os.path.exists(os.path.join(self.configuration["romsFolder"], name + ".zip")):
+            with transaction() as session:
+                session.query(Game).delete()
+                import xml.etree.ElementTree as etree
+                with open(filename) as tmpfile:
+                    doc = etree.iterparse(tmpfile, events=("start", "end"))
+                    doc = iter(doc)
+                    event, root = doc.next()
+                    num = 0
+                    for event, elem in doc:
+                        if event == "end" and elem.tag == "game":
+                            name = elem.get("name")
+                            if not os.path.exists(os.path.join(self.configuration["romsFolder"], name + ".zip")):
+                                root.clear()
+                                continue
+                            desc = elem.findtext("description") or ""
+                            year = elem.findtext("year") or ""
+                            manu = elem.findtext("manufacturer") or ""
+                            clone = elem.get("cloneof") or None
+                            status = ""
+                            driver = elem.find("driver")
+                            if driver is not None:
+                                status = driver.get("status") or ""
+                            game = Game(name=name, description=desc, year=year, manufacturer=manu, status=status,
+                                    cloneof=clone)
+                            session.add(game)
+                            if num >= 200:
+                                session.commit()
+                                num = 0
                             root.clear()
-                            continue
-                        desc = elem.findtext("description") or ""
-                        year = elem.findtext("year") or ""
-                        manu = elem.findtext("manufacturer") or ""
-                        clone = elem.get("cloneof") or None
-                        status = ""
-                        driver = elem.find("driver")
-                        if driver is not None:
-                            status = driver.get("status") or ""
-                        game = Game(name=name, description=desc, year=year, manufacturer=manu, status=status,
-                                cloneof=clone)
-                        session.add(game)
-                        if num >= 200:
-                            session.commit()
-                            num = 0
-                        root.clear()
 
         parse_elements()
 
@@ -248,7 +227,7 @@ class FrontendApplication:
         if len(selected) == 0:
             return
         selected = selected[0].row()
-        return self.model.getRow(selected)
+        return self.model._getRow(selected)
 
     def launchGame(self):
         game = self._getSelected()
@@ -268,12 +247,10 @@ class FrontendApplication:
             pix = None
             clone = game["game_cloneof"]
             if clone is not None:
-                @transactionnal
-                def getParent():
+                with transaction() as session:
                     result = session.execute(session.query(Game).filter(Game.name == clone))
                     result = [dict(x) for x in result]
-                    return result[0] if len(result) >= 1 else None
-                parent = getParent()
+                    parent = result[0] if len(result) >= 1 else None
                 if parent is not None:
                     return self.setGameImage(parent)
         else:
@@ -362,33 +339,33 @@ class MyModel(QtCore.QAbstractTableModel):
             self.cache = {}
             self.count = None
         self.modelReset.connect(reset)
-    @transactionnal
     def rowCount(self, *args):
         if self.count is None:
-            self.count = self._buildQuery().count()
+            with transaction() as session:
+                self.count = self._buildQuery(session).count()
         return self.count
-    def _buildQuery(self):
+    def _buildQuery(self, session):
         return session.query(Game).order_by(Game.description).filter( \
                 sqlalchemy.or_(Game.description.like("%" + self.searchString + "%"), \
                 Game.name.like("%" + self.searchString + "%")))
     def columnCount(self, *args):
         return len(MyModel.headers)
-    @transactionnal
     def data(self, index, role):
         if role != QtCore.Qt.DisplayRole:
             return
-        game = self.getRow(index.row())
+        game = self._getRow(index.row())
         col = MyModel.headers[index.column()][1]
         return game.get("game_" + col, "")
-    def getRow(self, row):
+    def _getRow(self, row):
         page = row / MyModel.items_per_page
         if not page in self.cache:
             if len(self.cache) >= MyModel.max_pages:
                 del self.cache[self.cache.keys()[0]]
-            result = session.execute(self._buildQuery() \
-                    .offset(page * MyModel.items_per_page).limit(MyModel.items_per_page))
-            dicts = [dict(x) for x in result]
-            self.cache[page] = dicts
+            with transaction() as session:
+                result = session.execute(self._buildQuery(session) \
+                        .offset(page * MyModel.items_per_page).limit(MyModel.items_per_page))
+                dicts = [dict(x) for x in result]
+                self.cache[page] = dicts
         return self.cache[page][row % MyModel.items_per_page]
     def headerData(self, section, orientation, role):
         if role != QtCore.Qt.DisplayRole:
