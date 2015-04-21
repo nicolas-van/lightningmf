@@ -4,7 +4,7 @@ from setuptools import setup
 import os.path
 
 setup(name='lightningmf',
-    version='1.0.3',
+    version='1.0.4',
     description='Lightning MAME Frontend',
     author='Nicolas Vanhoren',
     author_email='nicolas.vanhoren@unknown.com',
