@@ -16,7 +16,7 @@ setup(name='lightningmf',
     keywords="",
     license="GPLv3",
     install_requires=[
-        "SqlAlchemy>=0.9.8",
+        "SqlAlchemy>=1.0.0",
     ],
 )
 

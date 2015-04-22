@@ -45,7 +45,7 @@ if not os.path.exists(data_directory):
 confFile = os.path.join(data_directory, "conf.json")
 
 cstring = "sqlite:///" + os.path.join(data_directory, "db.sqlite")
-engine = sqlalchemy.create_engine(cstring, echo=False)
+engine = sqlalchemy.create_engine(cstring)
 
 # Some helpers to help use SqlAlchemy
 class Base(object):
@@ -74,19 +74,9 @@ class Game(Base):
 
 # session
 
-Session = sqlalchemy.orm.sessionmaker(bind=engine)
+Session = sqlalchemy.orm.sessionmaker(bind=engine, autocommit=True)
 
-@contextlib.contextmanager
-def transaction():
-    session = Session()
-    try:
-        yield session
-        session.commit()
-    except:
-        session.rollback()
-        raise
-    finally:
-        session.close()
+session = None
 
 # database initialisation
 
@@ -183,7 +173,8 @@ class FrontendApplication:
             return
 
         def parse_elements():
-            with transaction() as session:
+            session.begin()
+            try:
                 session.query(Game).delete()
                 import xml.etree.ElementTree as etree
                 with open(filename) as tmpfile:
@@ -212,6 +203,10 @@ class FrontendApplication:
                                 session.commit()
                                 num = 0
                             root.clear()
+                session.commit()
+            except:
+                session.rollback()
+                raise
 
         parse_elements()
 
@@ -247,10 +242,9 @@ class FrontendApplication:
             pix = None
             clone = game["game_cloneof"]
             if clone is not None:
-                with transaction() as session:
-                    result = session.execute(session.query(Game).filter(Game.name == clone))
-                    result = [dict(x) for x in result]
-                    parent = result[0] if len(result) >= 1 else None
+                result = session.execute(session.query(Game).filter(Game.name == clone))
+                result = [dict(x) for x in result]
+                parent = result[0] if len(result) >= 1 else None
                 if parent is not None:
                     return self.setGameImage(parent)
         else:
@@ -341,8 +335,7 @@ class MyModel(QtCore.QAbstractTableModel):
         self.modelReset.connect(reset)
     def rowCount(self, *args):
         if self.count is None:
-            with transaction() as session:
-                self.count = self._buildQuery(session).count()
+            self.count = self._buildQuery(session).count()
         return self.count
     def _buildQuery(self, session):
         return session.query(Game).order_by(Game.description).filter( \
@@ -361,11 +354,10 @@ class MyModel(QtCore.QAbstractTableModel):
         if not page in self.cache:
             if len(self.cache) >= MyModel.max_pages:
                 del self.cache[self.cache.keys()[0]]
-            with transaction() as session:
-                result = session.execute(self._buildQuery(session) \
-                        .offset(page * MyModel.items_per_page).limit(MyModel.items_per_page))
-                dicts = [dict(x) for x in result]
-                self.cache[page] = dicts
+            result = session.execute(self._buildQuery(session) \
+                    .offset(page * MyModel.items_per_page).limit(MyModel.items_per_page))
+            dicts = [dict(x) for x in result]
+            self.cache[page] = dicts
         return self.cache[page][row % MyModel.items_per_page]
     def headerData(self, section, orientation, role):
         if role != QtCore.Qt.DisplayRole:
@@ -378,6 +370,8 @@ def main():
         print "flush db"
         drop_db()
     init_db()
+    global session
+    session = Session()
     FrontendApplication().launch()
     print "End of application"
     engine.dispose()
