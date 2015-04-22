@@ -35,6 +35,7 @@ import json
 import shlex
 import StringIO
 import contextlib
+from sqlalchemy.pool import SingletonThreadPool
 
 SCRIPT_ROOT = os.path.dirname(os.path.realpath(__file__))
 
@@ -45,7 +46,7 @@ if not os.path.exists(data_directory):
 confFile = os.path.join(data_directory, "conf.json")
 
 cstring = "sqlite:///" + os.path.join(data_directory, "db.sqlite")
-engine = sqlalchemy.create_engine(cstring)
+engine = sqlalchemy.create_engine(cstring, poolclass=SingletonThreadPool)
 
 # Some helpers to help use SqlAlchemy
 class Base(object):
