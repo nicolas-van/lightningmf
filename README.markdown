@@ -7,18 +7,18 @@ Lightning MAME Frontend it not developped any more. If you want to continue its 
 
 [See the website for info about it.](http://lightningmf.neoname.eu)
 
-###To install (on Ubuntu or Debian):
+### To install (on Ubuntu or Debian):
 
     sudo apt-get install python-pyside python-pip
     sudo pip install lightningmf
 
-###To launch:
+### To launch:
 
 From the command line, type:
 
     lightningmf
 
-###Changelog:
+### Changelog:
 - 1.0.3:
   - corrected crash under ubuntu
   - changed the installation method to pip
